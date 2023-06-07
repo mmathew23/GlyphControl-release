@@ -25,7 +25,7 @@ def parse_args():
     parser.add_argument(
         "--ckpt",
         type=str,
-        default="checkpoints/laion10M_epoch_6_model_wo_ema.ckpt",
+        default="checkpoints/laion10M_epoch_6_model_ema_only.ckpt",
         help="path to checkpoint of model",
     )
     parser.add_argument(

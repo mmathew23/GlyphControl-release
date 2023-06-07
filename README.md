@@ -89,12 +89,12 @@ The relevant information is shown below.
 
 Checkpoint File | Training Dataset  | Trainig Epochs| $\bf{Acc}$ (%) $\uparrow$ | $\bf{\hat{Acc}}$ (%) $\uparrow$ |$\bf{LD}\downarrow$ | CLIP Score $\uparrow$ 
 :--------- | :--------- | :--------:| :---------: | :---------: | :---------: | :---------: |
-laion10M_epoch_6_model_wo_ema.ckpt | LAION-Glyph-10M  | 6 | $\bf{42}/\bf{28}$ |  $\bf{48}/\bf{34}$ | $\bf{1.43}/\bf{2.40}$ | $\bf{33.9}/\bf{36.2}$ | 
-textcaps5K_epoch_10_model_wo_ema.ckpt | TextCaps 5K  | 10 | $58/30$  | $64/34$ | $1.01/2.40$ | $33.8/35.1$
-textcaps5K_epoch_20_model_wo_ema.ckpt | TextCaps 5K  | 20 | $57/32$  | $66/38$ | $0.97/2.26$ | $34.2/35.5$
-textcaps5K_epoch_40_model_wo_ema.ckpt | TextCaps 5K  | 40 | $\bf{71}/\bf{41}$ |  $\bf{77}/\bf{46}$ | $\bf{0.55}/\bf{1.67}$ | $\bf{34.2}/\bf{35.8}$ | 
+laion10M_epoch_6_model_ema_only.ckpt | LAION-Glyph-10M  | 6 | $\bf{42}/\bf{28}$ |  $\bf{48}/\bf{34}$ | $\bf{1.43}/\bf{2.40}$ | $\bf{33.9}/\bf{36.2}$ | 
+textcaps5K_epoch_10_model_ema_only.ckpt | TextCaps 5K  | 10 | $58/30$  | $64/34$ | $1.01/2.40$ | $33.8/35.1$
+textcaps5K_epoch_20_model_ema_only.ckpt | TextCaps 5K  | 20 | $57/32$  | $66/38$ | $0.97/2.26$ | $34.2/35.5$
+textcaps5K_epoch_40_model_ema_only.ckpt | TextCaps 5K  | 40 | $\bf{71}/\bf{41}$ |  $\bf{77}/\bf{46}$ | $\bf{0.55}/\bf{1.67}$ | $\bf{34.2}/\bf{35.8}$ | 
 
-Although the models fine-tuned on TextCaps 5K demonstrate high OCR accuracy, the creativity and diversity of generted images may be lost. Feel free to try all the provided checkpoints for comparison. 
+Although the models fine-tuned on TextCaps 5K demonstrate high OCR accuracy, the creativity and diversity of generted images may be lost. Feel free to try all the provided checkpoints for comparison. All the checkpoints are ema-only checkpoints while ```use_ema``` in the configs/config.yaml should be set as ```False```.
 
 ## :mag_right: Glyph Instructions
 
@@ -112,7 +112,7 @@ To run inference code locally, you need specify the glyph instructions first in 
 
 And then execute the code like this:
 ```
-python inference.py --cfg configs/config.yaml --ckpt checkpoints/laion10M_epoch_6_model_wo_ema.ckpt --save_path generated_images --glyph_instructions glyph_instructions.yaml --prompt <Prompt> --num_samples 4
+python inference.py --cfg configs/config.yaml --ckpt checkpoints/laion10M_epoch_6_model_ema_only.ckpt --save_path generated_images --glyph_instructions glyph_instructions.yaml --prompt <Prompt> --num_samples 4
 ```
 
 If you do not want to generate visual text, you could remove the "--glyph_instructions" parameter in the command. You could also specify other parameters like ```a_prompt``` and ```n_prompt``` to monitor the generation process. Please see the codes for detailed descriptions.
