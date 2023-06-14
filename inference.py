@@ -168,14 +168,17 @@ if __name__ == "__main__":
 
     # Render glyph images and generate corresponding visual text
     # print(args.prompt)
+
+
     results = render_tool.process(rendered_txt_values, args.prompt,
                                      width_values, ratio_values,
                                      top_left_x_values, top_left_y_values,
                                      yaw_values, num_rows_values,
+                                     args.a_prompt, args.n_prompt,
                                      args.num_samples, args.image_resolution,
                                      args.ddim_steps, args.guess_mode,
                                      args.strength, args.scale, args.seed,
-                                     args.eta, args.a_prompt, args.n_prompt)
+                                     args.eta)
 
 
     print('render tool processed')

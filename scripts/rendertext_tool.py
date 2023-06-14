@@ -118,13 +118,18 @@ class Render_Text:
             #        [num_rows]
             #        )
             #    whiteboard_img = whiteboard_img.convert("RGB")
-
+            rendered_txt = rendered_txt.convert("RGB")
+            print(rendered_txt.mode)
             whiteboard_img = rendered_txt
+            print(whiteboard_img.mode)
+            
             control = self.transform(whiteboard_img.copy())
+            print(control.shape)
             if torch.cuda.is_available():
                 control = control.cuda()
             control = torch.stack([control for _ in range(num_samples)], dim=0)
             control = control.clone()
+            print(control.device)
             control = [control]
 
             H, W = image_resolution, image_resolution
