@@ -14,6 +14,8 @@ from scripts.rendertext_tool import Render_Text, load_model_from_config
 from omegaconf import OmegaConf
 import argparse
 import os
+import qrcode
+
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -39,14 +41,14 @@ def parse_args():
         type=str,
         default="whether to save memory by transferring some unused parts of models to the cpu device during inference",
         help="path to checkpoint of model",
-    )  
+    )
     # specify the inference settings
     parser.add_argument(
         "--glyph_instructions",
         type=str,
         default=None, #"glyph_instructions.yaml",
         help="path to glyph instructions",
-    )  
+    )
     parser.add_argument(
         "--prompt",
         type=str,
@@ -116,6 +118,23 @@ def parse_args():
     args = parser.parse_args()
     return args
 
+def create_qrcode(url):
+    # Generate QR code
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        box_size=10,
+        border=4,
+    )
+    qr.add_data(url)
+    qr.make(fit=True)
+
+    # Create an image for the QR Code
+    img = qr.make_image(fill_color="black", back_color="white")
+    img = img.resize((512, 512), Image.ANTIALIAS)
+
+    return img
+
 if __name__ == "__main__":
     args = parse_args()
     disable_verbosity()
@@ -127,6 +146,8 @@ if __name__ == "__main__":
         glyph_instructions = OmegaConf.load(args.glyph_instructions).Instructions
         # print(glyph_instructions)
         rendered_txt_values = glyph_instructions.rendered_txt_values
+        # Create a QR code for the specified website
+        rendered_txt_values = create_qrcode(rendered_txt_values)
         width_values = glyph_instructions.width_values
         ratio_values = glyph_instructions.ratio_values
         top_left_x_values = glyph_instructions.top_left_x_values
@@ -137,24 +158,24 @@ if __name__ == "__main__":
     except Exception as e:
         print(e)
         rendered_txt_values = [""]
-        width_values, ratio_values, top_left_x_values, top_left_y_values, yaw_values, num_rows_values = [None] * 6 
+        width_values, ratio_values, top_left_x_values, top_left_y_values, yaw_values, num_rows_values = [None] * 6
 
     cfg = OmegaConf.load(args.cfg)
     model = load_model_from_config(cfg, args.ckpt, verbose=True)
     render_tool = Render_Text(model, save_memory = args.save_memory)
 
-    # Render glyph images and generate corresponding visual text 
+    # Render glyph images and generate corresponding visual text
     # print(args.prompt)
-    results = render_tool.process_multi(rendered_txt_values, args.prompt,  
-                                     width_values, ratio_values,  
-                                     top_left_x_values, top_left_y_values,  
-                                     yaw_values, num_rows_values,  
-                                     args.num_samples, args.image_resolution,  
-                                     args.ddim_steps, args.guess_mode,  
-                                     args.strength, args.scale, args.seed,  
-                                     args.eta, args.a_prompt, args.n_prompt) 
-    
-    
+    results = render_tool.process(rendered_txt_values, args.prompt,
+                                     width_values, ratio_values,
+                                     top_left_x_values, top_left_y_values,
+                                     yaw_values, num_rows_values,
+                                     args.num_samples, args.image_resolution,
+                                     args.ddim_steps, args.guess_mode,
+                                     args.strength, args.scale, args.seed,
+                                     args.eta, args.a_prompt, args.n_prompt)
+
+
     result_path = os.path.join(args.save_path, args.prompt)
     os.makedirs(result_path, exist_ok=True)
     render_none = len([1 for rendered_txt in rendered_txt_values if rendered_txt != ""]) == 0
@@ -167,7 +188,7 @@ if __name__ == "__main__":
         results[0].save(os.path.join(result_path, f"{rendered_txt_join}_glyph_image.jpg"))
         for idx, result in enumerate(results[1:]):
             result_im = Image.fromarray(result)
-            result_im.save(os.path.join(result_path, f"{rendered_txt_join}_{idx}.jpg")) 
+            result_im.save(os.path.join(result_path, f"{rendered_txt_join}_{idx}.jpg"))
 
 
 

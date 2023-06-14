@@ -18,14 +18,14 @@ def load_model_from_config(cfg, ckpt, verbose=False, not_use_ckpt=False):
 
     # if "model_ema.input_blocks10in_layers0weight" not in sd:
     #     print("missing model_ema.input_blocks10in_layers0weight. set use_ema as False")
-    #     cfg.model.params.use_ema = False 
+    #     cfg.model.params.use_ema = False
     model = instantiate_from_config(cfg.model)
 
     if ckpt.endswith("model_states.pt"):
         sd = torch.load(ckpt, map_location='cpu')["module"]
     else:
         sd = load_state_dict(ckpt, location='cpu')
-   
+
     keys_ = list(sd.keys())[:]
     for k in keys_:
         if k.startswith("module."):
@@ -43,7 +43,7 @@ def load_model_from_config(cfg, ckpt, verbose=False, not_use_ckpt=False):
             print(u)
 
     if torch.cuda.is_available():
-        model.cuda() 
+        model.cuda()
     model.eval()
     return model
 
@@ -55,7 +55,7 @@ def load_model_ckpt(model, ckpt, verbose=True):
         sd = torch.load(ckpt, map_location=map_location)["module"]
     else:
         sd = load_state_dict(ckpt, location=map_location)
-   
+
     keys_ = list(sd.keys())[:]
     for k in keys_:
         if k.startswith("module."):
@@ -74,7 +74,7 @@ def load_model_ckpt(model, ckpt, verbose=True):
     return model
 
 class Render_Text:
-    def __init__(self, 
+    def __init__(self,
         model,
         precision_scope=nullcontext,
         transform=ToTensor(),
@@ -85,11 +85,11 @@ class Render_Text:
         self.transform = transform
         self.ddim_sampler = DDIMSampler(model)
         self.save_memory = save_memory
-    
+
     # only process a single group of rendered text (mainly for test on benchmark)
-    def process(self, 
-        rendered_txt, prompt, 
-        width, ratio, #height, 
+    def process(self,
+        rendered_txt, prompt,
+        width, ratio, #height,
         top_left_x, top_left_y, yaw, num_rows,
         a_prompt, n_prompt, num_samples, image_resolution, ddim_steps, guess_mode, strength, scale, seed, eta,
         ):
@@ -99,33 +99,34 @@ class Render_Text:
         with torch.no_grad(), \
             self.precision_scope("cuda"), \
             self.model.ema_scope("Sampling on Benchmark Prompts"):
-            print("rendered txt:", str(rendered_txt), "[t]")
-            if rendered_txt == "":
-                control = None
-            else:
-                bbox = {
-                    "width": width,
-                    "ratio": ratio,
-                    # "height": height,
-                    "top_left_x": top_left_x,
-                    "top_left_y": top_left_y,
-                    "yaw": yaw
-                }
-                whiteboard_img = render_text_image_custom(
-                    (image_resolution, image_resolution),
-                    [bbox],
-                    [rendered_txt],
-                    [num_rows]
-                    )
-                whiteboard_img = whiteboard_img.convert("RGB")
-                
+            #print("rendered txt:", str(rendered_txt), "[t]")
+            #if rendered_txt == "":
+            #    control = None
+            #else:
+            #    bbox = {
+            #        "width": width,
+            #        "ratio": ratio,
+            #        # "height": height,
+            #        "top_left_x": top_left_x,
+            #        "top_left_y": top_left_y,
+            #        "yaw": yaw
+            #    }
+            #    whiteboard_img = render_text_image_custom(
+            #        (image_resolution, image_resolution),
+            #        [bbox],
+            #        [rendered_txt],
+            #        [num_rows]
+            #        )
+            #    whiteboard_img = whiteboard_img.convert("RGB")
+
+                whiteboard_img = rendered_txt
                 control = self.transform(whiteboard_img.copy())
                 if torch.cuda.is_available():
                     control = control.cuda()
                 control = torch.stack([control for _ in range(num_samples)], dim=0)
                 control = control.clone()
                 control = [control]
-                    
+
             H, W = image_resolution, image_resolution
 
             if torch.cuda.is_available() and self.save_memory:
@@ -152,7 +153,7 @@ class Render_Text:
             # cond_c_cross = self.model.get_learned_conditioning([prompt + a_prompt] * num_samples)
             cond_c_cross = self.model.get_learned_conditioning([c_prompt] * num_samples)
             print("prompt:", c_prompt)
-            un_cond_cross = self.model.get_learned_conditioning([n_prompt] * num_samples)           
+            un_cond_cross = self.model.get_learned_conditioning([n_prompt] * num_samples)
             cond = {"c_concat": control, "c_crossattn": [cond_c_cross] if not isinstance(cond_c_cross, list) else cond_c_cross}
             un_cond = {"c_concat": None if guess_mode else control, "c_crossattn": [un_cond_cross] if not isinstance(un_cond_cross, list) else un_cond_cross}
             shape = (4, H // 8, W // 8)
@@ -182,16 +183,16 @@ class Render_Text:
             return [whiteboard_img] + results
         else:
             return results
-    
+
     # process multiple groups of rendered text (mainly for building demo)
-    def process_multi(self, 
-            rendered_txt_values, shared_prompt,  
-            width_values, ratio_values,  
-            top_left_x_values, top_left_y_values, 
+    def process_multi(self,
+            rendered_txt_values, shared_prompt,
+            width_values, ratio_values,
+            top_left_x_values, top_left_y_values,
             yaw_values, num_rows_values,
-            shared_num_samples, shared_image_resolution, 
-            shared_ddim_steps, shared_guess_mode, 
-            shared_strength, shared_scale, shared_seed, 
+            shared_num_samples, shared_image_resolution,
+            shared_ddim_steps, shared_guess_mode,
+            shared_strength, shared_scale, shared_seed,
             shared_eta, shared_a_prompt, shared_n_prompt,
             only_show_rendered_image=False
             ):
@@ -222,7 +223,7 @@ class Render_Text:
                             }
                         bboxes.append(bbox)
                     return bboxes
-                
+
                 whiteboard_img = render_text_image_custom(
                     (shared_image_resolution, shared_image_resolution),
                     format_bboxes(width_values, ratio_values, top_left_x_values, top_left_y_values, yaw_values),
@@ -230,17 +231,17 @@ class Render_Text:
                     num_rows_values
                     )
                 whiteboard_img = whiteboard_img.convert("RGB")
-                
+
                 if only_show_rendered_image:
                     return [whiteboard_img]
-                
+
                 control = self.transform(whiteboard_img.copy())
                 if torch.cuda.is_available():
                     control = control.cuda()
                 control = torch.stack([control for _ in range(shared_num_samples)], dim=0)
                 control = control.clone()
                 control = [control]
-                
+
             H, W = shared_image_resolution, shared_image_resolution
 
             # if shared_seed == -1:
@@ -272,7 +273,7 @@ class Render_Text:
             cond_c_cross = self.model.get_learned_conditioning([c_prompt] * shared_num_samples)
             print("prompt:", c_prompt)
             un_cond_cross = self.model.get_learned_conditioning([shared_n_prompt] * shared_num_samples)
-            
+
             if torch.cuda.is_available() and self.save_memory:
                 print("low_vram_shift: is_diffusing", True)
                 self.model.low_vram_shift(is_diffusing=True)
@@ -302,4 +303,4 @@ class Render_Text:
             return [whiteboard_img] + results
         else:
             return results
-        
+
