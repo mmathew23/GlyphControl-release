@@ -181,20 +181,17 @@ if __name__ == "__main__":
                                      args.eta)
 
 
-    print('render tool processed')
+    print('render tool processed', len(results))
     result_path = os.path.join(args.save_path, args.prompt)
     os.makedirs(result_path, exist_ok=True)
-    render_none = len([1 for rendered_txt in rendered_txt_values if rendered_txt != ""]) == 0
-    if render_none:
-        for idx, result in enumerate(results):
-            result_im = Image.fromarray(result)
-            result_im.save(os.path.join(result_path, f"{idx}.jpg"))
-    else:
-        rendered_txt_join = "_".join(rendered_txt_values)
-        results[0].save(os.path.join(result_path, f"{rendered_txt_join}_glyph_image.jpg"))
-        for idx, result in enumerate(results[1:]):
-            result_im = Image.fromarray(result)
-            result_im.save(os.path.join(result_path, f"{rendered_txt_join}_{idx}.jpg"))
-
+    
+    for idx, result in enumerate(results):
+        print(idx, type(result))
+        try:
+          result_im = Image.fromarray(result)
+          result_im.save(os.path.join(result_path, f"{idx}.jpg"))
+        except Exception as e:
+          result.save(os.path.join(result_path, f"{idx}.jpg"))
+    
 
 
