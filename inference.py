@@ -143,17 +143,18 @@ if __name__ == "__main__":
 
     try:
         # Glyph Instructions
-        glyph_instructions = OmegaConf.load(args.glyph_instructions).Instructions
+        # glyph_instructions = OmegaConf.load(args.glyph_instructions).Instructions
         # print(glyph_instructions)
-        rendered_txt_values = glyph_instructions.rendered_txt_values
+        # rendered_txt_values = glyph_instructions.rendered_txt_values
         # Create a QR code for the specified website
-        rendered_txt_values = create_qrcode(rendered_txt_values)
-        width_values = glyph_instructions.width_values
-        ratio_values = glyph_instructions.ratio_values
-        top_left_x_values = glyph_instructions.top_left_x_values
-        top_left_y_values = glyph_instructions.top_left_y_values
-        yaw_values = glyph_instructions.yaw_values
-        num_rows_values = glyph_instructions.num_rows_values
+        rendered_txt_values = create_qrcode(args.glyph_instructions)
+        width_values, ratio_values, top_left_x_values, top_left_y_values, yaw_values, num_rows_values = [None] * 6
+        # width_values = glyph_instructions.width_values
+        # ratio_values = glyph_instructions.ratio_values
+        # top_left_x_values = glyph_instructions.top_left_x_values
+        # top_left_y_values = glyph_instructions.top_left_y_values
+        # yaw_values = glyph_instructions.yaw_values
+        # num_rows_values = glyph_instructions.num_rows_values
         # print(rendered_txt_values, width_values, ratio_values, top_left_x_values, top_left_y_values, yaw_values, num_rows_values)
     except Exception as e:
         print(e)
@@ -163,6 +164,7 @@ if __name__ == "__main__":
     cfg = OmegaConf.load(args.cfg)
     model = load_model_from_config(cfg, args.ckpt, verbose=True)
     render_tool = Render_Text(model, save_memory = args.save_memory)
+    print('render_tool loaded')
 
     # Render glyph images and generate corresponding visual text
     # print(args.prompt)
@@ -176,6 +178,7 @@ if __name__ == "__main__":
                                      args.eta, args.a_prompt, args.n_prompt)
 
 
+    print('render tool processed')
     result_path = os.path.join(args.save_path, args.prompt)
     os.makedirs(result_path, exist_ok=True)
     render_none = len([1 for rendered_txt in rendered_txt_values if rendered_txt != ""]) == 0
