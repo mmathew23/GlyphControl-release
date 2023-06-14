@@ -11,4 +11,4 @@ ninja
 triton==2.0.0.dev20221120
 Levenshtein
 easyocr
-xformers==0.0.21.dev541
+xformers==0.0.21.dev544
